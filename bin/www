@@ -7,8 +7,8 @@
 const app = require('../app');
 const debug = require('debug')('chat-express:server');
 const http = require('http');
-const config = require('config')
-const logger = require('libs/log')(module)
+const config = require('../config')
+const logger = require('../libs/log')(module)
 
 /**
  * Get port from environment and store in Express.
