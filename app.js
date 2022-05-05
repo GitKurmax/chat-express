@@ -5,10 +5,15 @@ const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const favicon = require('serve-favicon')
 const HttpError = require('./error').HttpError
+const session = require('express-session')
+const mongoose = require("mongoose");
+const MongoStore = require('connect-mongo')
+const config = require('./config');
+const errorHandler = require('errorhandler')
+
+require('dotenv').config();
 
 const app = express();
-
-
 
 // view engine setup
 app.engine('ejs', require('ejs-locals'))
@@ -20,6 +25,25 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  key: 'sid',
+  cookie: {
+    path: '/',
+    httpOnly: true,
+    maxAge: null
+  },
+  store: MongoStore.create({
+    mongoUrl: config.get('mongoose:uri')
+  })
+}))
+// app.use(function (req, res, next) {
+//   req.session.numberOfVisits = req.session.numberOfVisits +1 || 1
+//   res.send({visits: req.session.numberOfVisits})
+// })
+
 app.use(require('./middleware/sendHttpError'))
 app.use(express.static(path.join(__dirname, 'public')));
 require('./routes')(app)
@@ -38,7 +62,7 @@ app.use(function(err, req, res, next) {
     res.sendHttpError(err);
   } else {
     if (app.get('env') == 'development') {
-      express.errorHandler()(err, req, res, next);
+      errorHandler()(err, req, res, next);
     } else {
       log.error(err);
       err = new HttpError(500);

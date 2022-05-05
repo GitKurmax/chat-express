@@ -1,30 +1,14 @@
-const {User} = require('../models/user');
-const HttpError = require('../error').HttpError
-const ObjectID = require('mongodb').ObjectID
+const checkAuth = require('../middleware/checkAuth');
+
 module.exports = function (app) {
 
-  app.get('/users', (req, res, next) => {
-    User.find({}, function (err, users) {
-      if(err) return next(err)
-      res.send(users)
-    })
-  });
+    app.get('/', require('./frontpage').get);
 
-  app.get('/user/:id', (req, res, next) => {
-    let id
-    try {
-      id = new ObjectID(req.params.id)
-    } catch (e) {
-      return next(404)
-    }
+    app.get('/login', require('./login').get);
+    app.post('/login', require('./login').post);
 
-    User.findById(id, function (err, user) {
-      if(err) return next(err)
-      if(!user) {
-        next(new HttpError(404, "User not found"))
-      } else {
-        res.send(user)
-      }
-    })
-  });
-}
+    app.post('/logout', require('./logout').post);
+
+    app.get('/chat', checkAuth, require('./chat').get);
+
+};
