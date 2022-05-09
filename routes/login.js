@@ -10,7 +10,6 @@ exports.get = function(req, res) {
 exports.post = function(req, res, next) {
     const username = req.body.username;
     const password = req.body.password;
-
     User.authorize(username, password, function(err, user) {
         if (err) {
             if (err instanceof AuthError) {
@@ -22,7 +21,5 @@ exports.post = function(req, res, next) {
 
         req.session.user = user._id;
         res.send({});
-
     });
-
 };
